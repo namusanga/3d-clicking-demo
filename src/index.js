@@ -5,10 +5,17 @@ import animate from "./animate";
 import createCamera from "./createCamera";
 import createRenderer from "./createRenderer";
 import createScene from "./createScene";
+import { InteractionManager } from "three.interactive";
 
 const renderer = createRenderer();
 const scene = createScene();
 const camera = createCamera();
+
+const interactionManager = new InteractionManager(
+  renderer,
+  camera,
+  renderer.domElement
+);
 
 const cubes = {
   pink: createCube({ color: 0xff00ce, x: -1, y: -1 }),
@@ -19,7 +26,15 @@ const cubes = {
 
 const light = createLight();
 
-for (const object of Object.values(cubes)) {
+for (const [name, object] of Object.entries(cubes)) {
+  object.addEventListener("click", (event) => {
+    event.stopPropagation();
+    console.log(`${name} cube was clicked`);
+    const cube = event.target;
+    camera.position.set(cube.position.x, cube.position.y, camera.position.z);
+  });
+
+  interactionManager.add(object);
   scene.add(object);
 }
 
@@ -27,4 +42,5 @@ scene.add(light);
 
 animate(() => {
   renderer.render(scene, camera);
+  interactionManager.update();
 });
